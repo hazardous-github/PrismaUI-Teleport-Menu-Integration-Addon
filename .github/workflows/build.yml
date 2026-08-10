@@ -1,0 +1,164 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version
+        required: false
+        type: string
+
+concurrency:
+  group: ptmi-build
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  VCPKG_ROOT: ${{ github.workspace }}\vcpkg
+  VCPKG_DEFAULT_TRIPLET: x64-windows-static-md-release
+  VCPKG_OVERLAY_TRIPLETS: ${{ github.workspace }}\triplets
+  VCPKG_COMMIT: 9e593bb18ea69cc5095e012465dcd675a822ed0d
+  SPRIGGIT_VERSION: 0.40.0
+  CAPRICA_VERSION: v0.3.0
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Enable long paths
+        shell: pwsh
+        run: git config --global core.longpaths true
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Version
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION_INPUT: ${{ inputs.version }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $version = $env:VERSION_INPUT.Trim()
+
+          if ($version) {
+            $version = $version -replace '^v', ''
+            if ($version -notmatch '^\d+\.\d+\.\d+$') {
+              throw "Invalid version"
+            }
+          } else {
+            $PSNativeCommandUseErrorActionPreference = $false
+            $latest = gh release view --repo $env:GITHUB_REPOSITORY --json tagName --jq .tagName 2>$null
+            $found = $LASTEXITCODE -eq 0
+            $PSNativeCommandUseErrorActionPreference = $true
+
+            if ($found -and $latest -match '^v(\d+)\.(\d+)\.(\d+)$') {
+              $version = "$($Matches[1]).$($Matches[2]).$([int]$Matches[3] + 1)"
+            } else {
+              $version = "1.0.0"
+            }
+          }
+
+          "PTMI_VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Build ESP
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          New-Item -ItemType Directory -Force -Path ".tools\spriggit", "generated" | Out-Null
+          gh release download $env:SPRIGGIT_VERSION --repo Mutagen-Modding/Spriggit --pattern "SpriggitCLI.zip" --dir ".tools"
+          Expand-Archive ".tools\SpriggitCLI.zip" -DestinationPath ".tools\spriggit" -Force
+          $spriggit = (Get-ChildItem ".tools\spriggit" -Recurse -Filter "Spriggit.CLI.exe" | Select-Object -First 1).FullName
+          & $spriggit deserialize --InputPath "plugin\PrismaUITeleportMenuIntegration.esp" --OutputPath "generated\PrismaUITeleportMenuIntegration.esp"
+
+      - name: Build PEX
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          $repoRoot = $PWD.Path
+          New-Item -ItemType Directory -Force -Path ".tools\caprica", "generated\Scripts" | Out-Null
+          gh release download $env:CAPRICA_VERSION --repo Orvid/Caprica --pattern "Caprica.v0.3.0.7z" --dir ".tools"
+          7z x ".tools\Caprica.v0.3.0.7z" "-o.tools\caprica" -y | Out-Null
+          $caprica = (Get-ChildItem ".tools\caprica" -Recurse -Filter "Caprica.exe" | Select-Object -First 1).FullName
+          Push-Location "$repoRoot\papyrus"
+          & $caprica --game=Skyrim --import="$repoRoot\papyrus\imports" --flags="$repoRoot\papyrus\PTMI_Papyrus_Flags.flg" --output="$repoRoot\generated\Scripts" --release --strict=true --ignorecwd "PTMI_OpenTeleportMenuFragment.psc"
+          Pop-Location
+
+      - name: Bootstrap vcpkg
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          git init "$env:VCPKG_ROOT"
+          git -C "$env:VCPKG_ROOT" remote add origin https://github.com/microsoft/vcpkg.git
+          git -C "$env:VCPKG_ROOT" fetch --depth 1 origin $env:VCPKG_COMMIT
+          git -C "$env:VCPKG_ROOT" checkout --detach FETCH_HEAD
+          & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" -disableMetrics
+
+      - name: Configure DLL
+        shell: pwsh
+        run: cmake -S . -B build -A x64 -DPTMI_VERSION="$env:PTMI_VERSION" -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET="$env:VCPKG_DEFAULT_TRIPLET" -DVCPKG_OVERLAY_TRIPLETS="$env:VCPKG_OVERLAY_TRIPLETS"
+
+      - name: Build DLL
+        shell: pwsh
+        run: cmake --build build --config Release --parallel
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $docs = "package\Data\Docs"
+          $license = "$docs\LICENSES_PTMI.txt"
+          $commonLib = "build\_deps\commonlibsse-src"
+          $vcpkgShare = "build\vcpkg_installed\$env:VCPKG_DEFAULT_TRIPLET\share"
+
+          New-Item -ItemType Directory -Force -Path "package\Data\SKSE\Plugins", "package\Data\Scripts", "package\Data\Source\Scripts", $docs, "release" | Out-Null
+          Copy-Item "build\Release\PrismaUITeleportMenuIntegration.dll" "package\Data\SKSE\Plugins\PrismaUITeleportMenuIntegration.dll"
+          Copy-Item "generated\PrismaUITeleportMenuIntegration.esp" "package\Data\PrismaUITeleportMenuIntegration.esp"
+          Copy-Item "generated\Scripts\PTMI_OpenTeleportMenuFragment.pex" "package\Data\Scripts\PTMI_OpenTeleportMenuFragment.pex"
+          Copy-Item "papyrus\PTMI_OpenTeleportMenuFragment.psc" "package\Data\Source\Scripts\PTMI_OpenTeleportMenuFragment.psc"
+
+          @(
+            "PrismaUI Teleport Menu Integration"
+            "GPL-3.0-or-later"
+            "Source: https://github.com/hazardous-github/PrismaUI-Teleport-Menu-Integration"
+            ""
+            "===== PTMI ====="
+            ""
+          ) | Set-Content $license -Encoding utf8
+          Get-Content "LICENSE" -Raw | Add-Content $license -Encoding utf8
+
+          foreach ($file in @("COPYING", "EXCEPTIONS.md", "LICENSE")) {
+            Add-Content $license -Value "`n===== CommonLibSSE-NG: $file =====`n" -Encoding utf8
+            Get-Content "$commonLib\$file" -Raw | Add-Content $license -Encoding utf8
+          }
+
+          Get-ChildItem $vcpkgShare -Directory | Sort-Object Name | ForEach-Object {
+            $copyright = Join-Path $_.FullName "copyright"
+            if (Test-Path $copyright) {
+              Add-Content $license -Value "`n===== $($_.Name) =====`n" -Encoding utf8
+              Get-Content $copyright -Raw | Add-Content $license -Encoding utf8
+            }
+          }
+
+          Compress-Archive -Path "package\Data\*" -DestinationPath "release\PrismaUITeleportMenuIntegration.zip" -Force
+
+      - name: Publish
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          $tag = "v$env:PTMI_VERSION"
+          $asset = "release\PrismaUITeleportMenuIntegration.zip"
+          gh release create $tag $asset --target $env:GITHUB_SHA --title $tag --notes "" --latest --repo $env:GITHUB_REPOSITORY
