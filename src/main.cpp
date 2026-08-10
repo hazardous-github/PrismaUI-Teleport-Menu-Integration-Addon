@@ -56,12 +56,12 @@ namespace
         return path;
     }
 
-    [[nodiscard]] bool ReadSetting(const wchar_t* a_key)
+    [[nodiscard]] bool ReadSetting(const wchar_t* a_key, bool a_default)
     {
         return GetPrivateProfileIntW(
                    L"DialogueOptions",
                    a_key,
-                   1,
+                   a_default ? 1 : 0,
                    GetSettingsPath().c_str()) != 0;
     }
 
@@ -85,10 +85,10 @@ namespace
 
     void ApplyDialogueSettings()
     {
-        SetGlobal(g_enableCarriages, ReadSetting(L"Carriages"));
-        SetGlobal(g_enableFerries, ReadSetting(L"Ferries"));
-        SetGlobal(g_enableInnkeepers, ReadSetting(L"Innkeepers"));
-        SetGlobal(g_enableCourtWizards, ReadSetting(L"CourtWizards"));
+        SetGlobal(g_enableCarriages, ReadSetting(L"Carriages", true));
+        SetGlobal(g_enableFerries, ReadSetting(L"Ferries", true));
+        SetGlobal(g_enableInnkeepers, ReadSetting(L"Innkeepers", false));
+        SetGlobal(g_enableCourtWizards, ReadSetting(L"CourtWizards", false));
     }
 
     void ResolveDialogueGlobals()
