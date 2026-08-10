@@ -161,4 +161,5 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $true
           $tag = "v$env:PTMI_VERSION"
           $asset = "release\PrismaUI Teleport Menu Integration Addon.zip"
-          gh release create $tag $asset --target $env:GITHUB_SHA --title $tag --notes "" --latest --repo $env:GITHUB_REPOSITORY
+          $assetLabel = "PrismaUI Teleport Menu Integration Addon.zip"
+          gh release create $tag "$asset#$assetLabel" --target $env:GITHUB_SHA --title $tag --notes "" --latest --repo $env:GITHUB_REPOSITORY
