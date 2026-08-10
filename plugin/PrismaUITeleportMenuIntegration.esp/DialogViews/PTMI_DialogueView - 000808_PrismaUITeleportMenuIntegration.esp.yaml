@@ -1,0 +1,8 @@
+FormKey: 000808:PrismaUITeleportMenuIntegration.esp
+EditorID: PTMI_DialogueView
+Quest: 013EB3:Skyrim.esm
+Branches:
+- 000802:PrismaUITeleportMenuIntegration.esp
+TNAMs: []
+ENAM: 0x00000000
+DNAM: 0x01

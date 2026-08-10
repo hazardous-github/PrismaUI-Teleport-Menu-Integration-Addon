@@ -1,0 +1,9 @@
+FormKey: 000800:PrismaUITeleportMenuIntegration.esp
+EditorID: PTMI_OpenTeleportMenuTopic
+Name:
+  TargetLanguage: English
+  Value: I'd like to travel somewhere else.
+Priority: 60
+Branch: 000802:PrismaUITeleportMenuIntegration.esp
+Quest: 013EB3:Skyrim.esm
+SubtypeName: CUST

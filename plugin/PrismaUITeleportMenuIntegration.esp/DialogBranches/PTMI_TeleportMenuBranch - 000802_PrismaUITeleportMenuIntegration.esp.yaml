@@ -1,0 +1,7 @@
+FormKey: 000802:PrismaUITeleportMenuIntegration.esp
+EditorID: PTMI_TeleportMenuBranch
+Quest: 013EB3:Skyrim.esm
+Category: Player
+Flags:
+- TopLevel
+StartingTopic: 000800:PrismaUITeleportMenuIntegration.esp
