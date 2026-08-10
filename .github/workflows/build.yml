@@ -150,7 +150,7 @@ jobs:
             }
           }
 
-          Compress-Archive -Path "package\Data\*" -DestinationPath "release\PrismaUI Teleport Menu Integration Addon.zip" -Force
+          Compress-Archive -Path "package\Data\*" -DestinationPath "release\PrismaUITeleportMenuIntegration.zip" -Force
 
       - name: Publish
         shell: pwsh
@@ -160,6 +160,5 @@ jobs:
           $ErrorActionPreference = "Stop"
           $PSNativeCommandUseErrorActionPreference = $true
           $tag = "v$env:PTMI_VERSION"
-          $asset = "release\PrismaUI Teleport Menu Integration Addon.zip"
-          $assetLabel = "PrismaUI Teleport Menu Integration Addon.zip"
-          gh release create $tag "$asset#$assetLabel" --target $env:GITHUB_SHA --title $tag --notes "" --latest --repo $env:GITHUB_REPOSITORY
+          $asset = "release\PrismaUITeleportMenuIntegration.zip"
+          gh release create $tag $asset --target $env:GITHUB_SHA --title $tag --notes "" --latest --repo $env:GITHUB_REPOSITORY
