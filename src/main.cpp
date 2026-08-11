@@ -131,9 +131,12 @@ namespace
     void RegisterMenuFrameworkSettings()
     {
         if (PTMI::MenuFramework::IsLoaded()) {
-            (void)PTMI::MenuFramework::AddSectionItem(
+            const auto itemAdded = PTMI::MenuFramework::AddSectionItem(
                 "PrismaUI Teleport Menu Integration/Dialogue Options",
                 RenderDialogueSettings);
+            if (!itemAdded || !PTMI::MenuFramework::IsCheckboxAvailable()) {
+                spdlog::warn("SKSE Menu Framework registration failed");
+            }
         }
     }
 

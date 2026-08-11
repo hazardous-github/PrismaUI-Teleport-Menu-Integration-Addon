@@ -1,0 +1,39 @@
+FormKey: 000804:PrismaUITeleportMenuIntegration.esp
+VirtualMachineAdapter:
+  Scripts:
+  - Name: PTMI_OpenTeleportMenuFragment
+  ScriptFragments:
+    MutagenObjectType: ScriptFragments
+    FileName: PTMI_OpenTeleportMenuFragment
+    OnBegin:
+      ExtraBindDataVersion: 1
+      ScriptName: PTMI_OpenTeleportMenuFragment
+      FragmentName: Fragment_0
+Flags:
+  Flags:
+  - Goodbye
+PreviousDialog: Null
+FavorLevel: None
+Responses:
+- Emotion: Neutral
+  EmotionValue: 0
+  ResponseNumber: 1
+  Unknown2: 0x000000
+  Flags: []
+  Unknown3: 0x000000
+  Text:
+    TargetLanguage: English
+    Value: ''
+  ScriptNotes: ''
+  Edits: ''
+Conditions:
+- MutagenObjectType: ConditionFloat
+  Data:
+    MutagenObjectType: GetGlobalValueConditionData
+    Global: 00080B:PrismaUITeleportMenuIntegration.esp
+  ComparisonValue: 1
+- MutagenObjectType: ConditionFloat
+  Data:
+    MutagenObjectType: GetInFactionConditionData
+    Faction: 05091B:Skyrim.esm
+  ComparisonValue: 1

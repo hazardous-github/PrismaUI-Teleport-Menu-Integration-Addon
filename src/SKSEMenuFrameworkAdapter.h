@@ -20,7 +20,7 @@ namespace PTMI::MenuFramework
     {
         static HMODULE module = nullptr;
         if (!module) {
-            module = GetModuleHandleW(L"SKSEMenuFramework");
+            module = GetModuleHandleW(L"SKSEMenuFramework.dll");
         }
         return module;
     }
@@ -58,5 +58,10 @@ namespace PTMI::MenuFramework
             function = Resolve<CheckboxFunction>("igCheckbox");
         }
         return function ? function(a_label, a_value) : false;
+    }
+
+    [[nodiscard]] inline bool IsCheckboxAvailable() noexcept
+    {
+        return Resolve<CheckboxFunction>("igCheckbox") != nullptr;
     }
 }
