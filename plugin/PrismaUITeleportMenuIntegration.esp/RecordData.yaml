@@ -8,7 +8,7 @@ ModHeader:
   - Small
   Stats:
     Version: 1.7
-    NumRecords: 18
+    NumRecords: 14
     NextFormID: 2063
   Author: hazardous-github
   Description: Adds a PrismaUI Teleport Menu dialogue option.

@@ -1,5 +1,5 @@
-FormKey: 000801:PrismaUITeleportMenuIntegration.esp
-EditorID: PTMI_OpenTeleportMenuInfo
+FormKey: 00080E:PrismaUITeleportMenuIntegration.esp
+EditorID: PTMI_OpenTeleportMenuCourtWizardInfo
 VirtualMachineAdapter:
   Scripts:
   - Name: PTMI_OpenTeleportMenuFragment
@@ -13,31 +13,17 @@ VirtualMachineAdapter:
 Flags:
   Flags:
   - Goodbye
+PreviousDialog: 00080D:PrismaUITeleportMenuIntegration.esp
 FavorLevel: None
 ResponseData: 0DBA22:Skyrim.esm
 Conditions:
 - MutagenObjectType: ConditionFloat
   Data:
     MutagenObjectType: GetInFactionConditionData
-    Faction: 017F04:Skyrim.esm
+    Faction: 05091E:Skyrim.esm
   ComparisonValue: 1
 - MutagenObjectType: ConditionFloat
   Data:
-    MutagenObjectType: GetIsIDConditionData
-    Object: 021207:Skyrim.esm
-  ComparisonValue: 0
-- MutagenObjectType: ConditionFloat
-  Data:
-    MutagenObjectType: GetIsIDConditionData
-    Object: 0424AE:Skyrim.esm
-  ComparisonValue: 0
-- MutagenObjectType: ConditionFloat
-  Data:
-    MutagenObjectType: GetIsIDConditionData
-    Object: 04252C:Skyrim.esm
-  ComparisonValue: 0
-- MutagenObjectType: ConditionFloat
-  Data:
     MutagenObjectType: GetGlobalValueConditionData
-    Global: 000809:PrismaUITeleportMenuIntegration.esp
+    Global: 00080C:PrismaUITeleportMenuIntegration.esp
   ComparisonValue: 1

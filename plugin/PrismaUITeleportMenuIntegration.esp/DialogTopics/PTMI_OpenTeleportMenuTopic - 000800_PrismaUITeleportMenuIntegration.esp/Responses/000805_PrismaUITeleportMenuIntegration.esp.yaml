@@ -1,39 +1,29 @@
 FormKey: 000805:PrismaUITeleportMenuIntegration.esp
+EditorID: PTMI_OpenTeleportMenuHarlaugInfo
 VirtualMachineAdapter:
   Scripts:
   - Name: PTMI_OpenTeleportMenuFragment
   ScriptFragments:
     MutagenObjectType: ScriptFragments
     FileName: PTMI_OpenTeleportMenuFragment
-    OnBegin:
+    OnEnd:
       ExtraBindDataVersion: 1
       ScriptName: PTMI_OpenTeleportMenuFragment
       FragmentName: Fragment_0
 Flags:
   Flags:
   - Goodbye
-PreviousDialog: Null
+PreviousDialog: 000804:PrismaUITeleportMenuIntegration.esp
 FavorLevel: None
-Responses:
-- Emotion: Neutral
-  EmotionValue: 0
-  ResponseNumber: 1
-  Unknown2: 0x000000
-  Flags: []
-  Unknown3: 0x000000
-  Text:
-    TargetLanguage: English
-    Value: ''
-  ScriptNotes: ''
-  Edits: ''
+ResponseData: 0DBA22:Skyrim.esm
 Conditions:
 - MutagenObjectType: ConditionFloat
   Data:
-    MutagenObjectType: GetGlobalValueConditionData
-    Global: 00080C:PrismaUITeleportMenuIntegration.esp
+    MutagenObjectType: GetIsIDConditionData
+    Object: 01684E:Dawnguard.esm
   ComparisonValue: 1
 - MutagenObjectType: ConditionFloat
   Data:
-    MutagenObjectType: GetInFactionConditionData
-    Faction: 05091E:Skyrim.esm
+    MutagenObjectType: GetGlobalValueConditionData
+    Global: 00080A:PrismaUITeleportMenuIntegration.esp
   ComparisonValue: 1

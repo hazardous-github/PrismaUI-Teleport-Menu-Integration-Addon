@@ -1,5 +1,5 @@
-FormKey: 000803:PrismaUITeleportMenuIntegration.esp
-EditorID: PTMI_OpenTeleportMenuBYOHInfo
+FormKey: 000806:PrismaUITeleportMenuIntegration.esp
+EditorID: PTMI_OpenTeleportMenuGortInfo
 VirtualMachineAdapter:
   Scripts:
   - Name: PTMI_OpenTeleportMenuFragment
@@ -13,17 +13,17 @@ VirtualMachineAdapter:
 Flags:
   Flags:
   - Goodbye
-PreviousDialog: 000801:PrismaUITeleportMenuIntegration.esp
+PreviousDialog: 000805:PrismaUITeleportMenuIntegration.esp
 FavorLevel: None
 ResponseData: 0DBA22:Skyrim.esm
 Conditions:
 - MutagenObjectType: ConditionFloat
   Data:
-    MutagenObjectType: GetInFactionConditionData
-    Faction: 007890:HearthFires.esm
+    MutagenObjectType: GetIsIDConditionData
+    Object: 01684F:Dawnguard.esm
   ComparisonValue: 1
 - MutagenObjectType: ConditionFloat
   Data:
     MutagenObjectType: GetGlobalValueConditionData
-    Global: 000809:PrismaUITeleportMenuIntegration.esp
+    Global: 00080A:PrismaUITeleportMenuIntegration.esp
   ComparisonValue: 1
