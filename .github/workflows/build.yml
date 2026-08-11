@@ -123,6 +123,7 @@ jobs:
 
           New-Item -ItemType Directory -Force -Path "package\Data\SKSE\Plugins", "package\Data\Scripts", "package\Data\Source\Scripts", $docs, "release" | Out-Null
           Copy-Item "build\Release\PrismaUITeleportMenuIntegration.dll" "package\Data\SKSE\Plugins\PrismaUITeleportMenuIntegration.dll"
+          Copy-Item "config\PrismaUITeleportMenuIntegration.ini" "package\Data\SKSE\Plugins\PrismaUITeleportMenuIntegration.ini"
           Copy-Item "generated\PrismaUITeleportMenuIntegration.esp" "package\Data\PrismaUITeleportMenuIntegration.esp"
           Copy-Item "generated\Scripts\PTMI_OpenTeleportMenuFragment.pex" "package\Data\Scripts\PTMI_OpenTeleportMenuFragment.pex"
           Copy-Item "papyrus\PTMI_OpenTeleportMenuFragment.psc" "package\Data\Source\Scripts\PTMI_OpenTeleportMenuFragment.psc"
