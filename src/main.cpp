@@ -129,20 +129,24 @@ namespace
 
     void __stdcall RenderDialogueSettings()
     {
+        PTMI::MenuFramework::SectionSeparator("Teleport Menu Integration");
+
         bool immersiveMenu = g_useImmersiveMenu;
         if (PTMI::MenuFramework::Checkbox("Immersive Menu", std::addressof(immersiveMenu))) {
             g_useImmersiveMenu = immersiveMenu;
             WriteSetting(L"ImmersiveMenu", immersiveMenu);
         }
-        PTMI::MenuFramework::Tooltip(
-            "Limits Teleport Menu to locations carriages can normally transport to. Turn this off to use the fully unlocked Teleport Menu.");
+        PTMI::MenuFramework::Description(
+            "When enabled, Teleport Menu triggered through dialogue only offers destinations normally reachable by carriage.");
 
         bool travelCosts = g_useTravelCosts;
         if (PTMI::MenuFramework::Checkbox("Travel Costs", std::addressof(travelCosts))) {
             g_useTravelCosts = travelCosts;
             WriteSetting(L"TravelCosts", travelCosts);
         }
-        PTMI::MenuFramework::Tooltip("Adds fare to Immersive Menu. Turn this off to remove costs.");
+        PTMI::MenuFramework::Description("Adds fares to Immersive Menu. Turn this off to remove costs in Immersive Menu.");
+
+        PTMI::MenuFramework::SectionSeparator("Dialogue Options");
 
         RenderSetting("Carriages", L"Carriages", g_enableCarriages);
         RenderSetting("Ferries", L"Ferries", g_enableFerries);
@@ -154,10 +158,11 @@ namespace
     {
         if (PTMI::MenuFramework::IsLoaded()) {
             const auto itemAdded = PTMI::MenuFramework::AddSectionItem(
-                "PrismaUI Teleport Menu Integration/Dialogue Options",
+                "PrismaUI Teleport Menu Integration/Settings",
                 RenderDialogueSettings);
             if (!itemAdded || !PTMI::MenuFramework::IsCheckboxAvailable() ||
-                !PTMI::MenuFramework::IsTooltipAvailable()) {
+                !PTMI::MenuFramework::IsDescriptionAvailable() ||
+                !PTMI::MenuFramework::IsSeparatorAvailable()) {
                 spdlog::warn("SKSE Menu Framework registration failed");
             }
         }
