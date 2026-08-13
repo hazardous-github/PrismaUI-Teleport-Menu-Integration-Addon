@@ -12,7 +12,12 @@ namespace
     constexpr RE::FormID kCourtWizardsGlobalID = 0x80C;
 
     using TeleportOpen = bool (*)();
+    using TeleportOpenImmersive = bool (*)(float);
     TeleportOpen g_openTeleportMenu = nullptr;
+    TeleportOpenImmersive g_openImmersiveTeleportMenu = nullptr;
+
+    bool g_useImmersiveMenu = false;
+    bool g_useTravelCosts = true;
 
     RE::TESGlobal* g_enableCarriages = nullptr;
     RE::TESGlobal* g_enableFerries = nullptr;
@@ -85,6 +90,8 @@ namespace
 
     void ApplyDialogueSettings()
     {
+        g_useImmersiveMenu = ReadSetting(L"ImmersiveMenu", false);
+        g_useTravelCosts = ReadSetting(L"TravelCosts", true);
         SetGlobal(g_enableCarriages, ReadSetting(L"Carriages", true));
         SetGlobal(g_enableFerries, ReadSetting(L"Ferries", true));
         SetGlobal(g_enableInnkeepers, ReadSetting(L"Innkeepers", false));
@@ -122,6 +129,21 @@ namespace
 
     void __stdcall RenderDialogueSettings()
     {
+        bool immersiveMenu = g_useImmersiveMenu;
+        if (PTMI::MenuFramework::Checkbox("Immersive Menu", std::addressof(immersiveMenu))) {
+            g_useImmersiveMenu = immersiveMenu;
+            WriteSetting(L"ImmersiveMenu", immersiveMenu);
+        }
+        PTMI::MenuFramework::Tooltip(
+            "Limits Teleport Menu to locations carriages can normally transport to. Turn this off to use the fully unlocked Teleport Menu.");
+
+        bool travelCosts = g_useTravelCosts;
+        if (PTMI::MenuFramework::Checkbox("Travel Costs", std::addressof(travelCosts))) {
+            g_useTravelCosts = travelCosts;
+            WriteSetting(L"TravelCosts", travelCosts);
+        }
+        PTMI::MenuFramework::Tooltip("Adds fare to Immersive Menu. Turn this off to remove costs.");
+
         RenderSetting("Carriages", L"Carriages", g_enableCarriages);
         RenderSetting("Ferries", L"Ferries", g_enableFerries);
         RenderSetting("Innkeepers", L"Innkeepers", g_enableInnkeepers);
@@ -134,21 +156,33 @@ namespace
             const auto itemAdded = PTMI::MenuFramework::AddSectionItem(
                 "PrismaUI Teleport Menu Integration/Dialogue Options",
                 RenderDialogueSettings);
-            if (!itemAdded || !PTMI::MenuFramework::IsCheckboxAvailable()) {
+            if (!itemAdded || !PTMI::MenuFramework::IsCheckboxAvailable() ||
+                !PTMI::MenuFramework::IsTooltipAvailable()) {
                 spdlog::warn("SKSE Menu Framework registration failed");
             }
         }
     }
 
-    void ResolveTeleportOpen()
+    void ResolveTeleportAPI()
     {
         const auto module = GetModuleHandleW(L"PrismaUITeleportMenu.dll");
         if (module) {
             g_openTeleportMenu = reinterpret_cast<TeleportOpen>(GetProcAddress(module, "Teleport_Open"));
+            g_openImmersiveTeleportMenu = reinterpret_cast<TeleportOpenImmersive>(
+                GetProcAddress(module, "Teleport_OpenImmersive"));
         }
 
         if (!g_openTeleportMenu) {
             spdlog::warn("Teleport API unavailable");
+        }
+    }
+
+    void OpenTeleportMenu()
+    {
+        if (g_useImmersiveMenu && g_openImmersiveTeleportMenu) {
+            g_openImmersiveTeleportMenu(g_useTravelCosts ? 1.0F : 0.0F);
+        } else if (g_openTeleportMenu) {
+            g_openTeleportMenu();
         }
     }
 
@@ -163,8 +197,8 @@ namespace
                 return RE::BSEventNotifyControl::kContinue;
             }
 
-            if (std::strcmp(a_event->eventName.c_str(), kModEventName.data()) == 0 && g_openTeleportMenu) {
-                g_openTeleportMenu();
+            if (std::strcmp(a_event->eventName.c_str(), kModEventName.data()) == 0) {
+                OpenTeleportMenu();
             }
 
             return RE::BSEventNotifyControl::kContinue;
@@ -176,7 +210,7 @@ namespace
     void OnDataLoaded()
     {
         ResolveDialogueGlobals();
-        ResolveTeleportOpen();
+        ResolveTeleportAPI();
 
         auto* eventSource = SKSE::GetModCallbackEventSource();
         if (!eventSource) {
