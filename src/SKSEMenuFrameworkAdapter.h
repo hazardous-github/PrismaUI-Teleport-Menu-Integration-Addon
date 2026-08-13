@@ -15,8 +15,9 @@ namespace PTMI::MenuFramework
     using RenderFunction = void(__stdcall*)();
     using AddSectionItemFunction = void (*)(const char*, RenderFunction);
     using CheckboxFunction = bool (*)(const char*, bool*);
-    using IsItemHoveredFunction = bool (*)(int);
-    using SetTooltipFunction = void (*)(const char*, ...);
+    using TextDisabledFunction = void (*)(const char*, ...);
+    using SeparatorTextFunction = void (*)(const char*);
+    using SeparatorFunction = void (*)();
 
     [[nodiscard]] inline HMODULE GetModule() noexcept
     {
@@ -62,22 +63,35 @@ namespace PTMI::MenuFramework
         return function ? function(a_label, a_value) : false;
     }
 
-    inline void Tooltip(const char* a_text) noexcept
+    inline void Description(const char* a_text) noexcept
     {
-        static IsItemHoveredFunction isItemHovered = nullptr;
-        static SetTooltipFunction setTooltip = nullptr;
-        if (!isItemHovered) {
-            isItemHovered = Resolve<IsItemHoveredFunction>("igIsItemHovered");
+        static TextDisabledFunction function = nullptr;
+        if (!function) {
+            function = Resolve<TextDisabledFunction>("igTextDisabled");
         }
-        if (!setTooltip) {
-            setTooltip = Resolve<SetTooltipFunction>("igSetTooltip");
+
+        if (function) {
+            function("%s", a_text);
         }
-        if (!isItemHovered || !setTooltip) {
+    }
+
+    inline void SectionSeparator(const char* a_label) noexcept
+    {
+        static SeparatorTextFunction separatorText = nullptr;
+        static SeparatorFunction separator = nullptr;
+        if (!separatorText) {
+            separatorText = Resolve<SeparatorTextFunction>("igSeparatorText");
+        }
+        if (separatorText) {
+            separatorText(a_label);
             return;
         }
 
-        if (isItemHovered(0)) {
-            setTooltip("%s", a_text);
+        if (!separator) {
+            separator = Resolve<SeparatorFunction>("igSeparator");
+        }
+        if (separator) {
+            separator();
         }
     }
 
@@ -86,9 +100,14 @@ namespace PTMI::MenuFramework
         return Resolve<CheckboxFunction>("igCheckbox") != nullptr;
     }
 
-    [[nodiscard]] inline bool IsTooltipAvailable() noexcept
+    [[nodiscard]] inline bool IsDescriptionAvailable() noexcept
     {
-        return Resolve<IsItemHoveredFunction>("igIsItemHovered") != nullptr &&
-               Resolve<SetTooltipFunction>("igSetTooltip") != nullptr;
+        return Resolve<TextDisabledFunction>("igTextDisabled") != nullptr;
+    }
+
+    [[nodiscard]] inline bool IsSeparatorAvailable() noexcept
+    {
+        return Resolve<SeparatorTextFunction>("igSeparatorText") != nullptr ||
+               Resolve<SeparatorFunction>("igSeparator") != nullptr;
     }
 }
