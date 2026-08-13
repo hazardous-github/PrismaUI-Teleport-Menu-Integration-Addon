@@ -15,6 +15,8 @@ namespace PTMI::MenuFramework
     using RenderFunction = void(__stdcall*)();
     using AddSectionItemFunction = void (*)(const char*, RenderFunction);
     using CheckboxFunction = bool (*)(const char*, bool*);
+    using IsItemHoveredFunction = bool (*)(int);
+    using SetTooltipFunction = void (*)(const char*, ...);
 
     [[nodiscard]] inline HMODULE GetModule() noexcept
     {
@@ -60,8 +62,33 @@ namespace PTMI::MenuFramework
         return function ? function(a_label, a_value) : false;
     }
 
+    inline void Tooltip(const char* a_text) noexcept
+    {
+        static IsItemHoveredFunction isItemHovered = nullptr;
+        static SetTooltipFunction setTooltip = nullptr;
+        if (!isItemHovered) {
+            isItemHovered = Resolve<IsItemHoveredFunction>("igIsItemHovered");
+        }
+        if (!setTooltip) {
+            setTooltip = Resolve<SetTooltipFunction>("igSetTooltip");
+        }
+        if (!isItemHovered || !setTooltip) {
+            return;
+        }
+
+        if (isItemHovered(0)) {
+            setTooltip("%s", a_text);
+        }
+    }
+
     [[nodiscard]] inline bool IsCheckboxAvailable() noexcept
     {
         return Resolve<CheckboxFunction>("igCheckbox") != nullptr;
+    }
+
+    [[nodiscard]] inline bool IsTooltipAvailable() noexcept
+    {
+        return Resolve<IsItemHoveredFunction>("igIsItemHovered") != nullptr &&
+               Resolve<SetTooltipFunction>("igSetTooltip") != nullptr;
     }
 }
